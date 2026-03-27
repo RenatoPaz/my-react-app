@@ -43,22 +43,21 @@ pipeline {
 
         stage('AWS S3 Deploy') {
             agent {
-                docker {
-                    image 'amazon/aws-cli:2.15.57'
-                    args '--entrypoint=""'
-                    reuseNode true
-                }
+        docker {
+            image 'amazon/aws-cli:2.15.57'
+            args '--entrypoint=""'
+            reuseNode true
+        }
             }
-            steps {
-                withCredentials([
-                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
-                ]) {
-                    sh '''
-                        aws --version
-                        aws s3 ls
-                        aws s3 sync build/ s3://$S3_BUCKET --delete --region $AWS_DEFAULT_REGION
-                    '''
+        steps {
+        withCredentials([
+            string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+            sh '''
+                aws --version
+                aws s3 sync build/ s3://$S3_BUCKET --delete --region $AWS_DEFAULT_REGION
+            ''' 
                 }
             }
         }
