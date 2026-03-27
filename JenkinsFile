@@ -45,18 +45,21 @@ pipeline {
             agent {
                 docker {
                     image 'amazon/aws-cli:2.15.57'
+                    args '--entrypoint=""'
                     reuseNode true
                 }
             }
-            environment {
-                AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
-                AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-            }
             steps {
-                sh '''
-                    aws --version
-                    aws s3 sync build/ s3://$S3_BUCKET --delete
-                '''
+                withCredentials([
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh '''
+                        aws --version
+                        aws s3 ls
+                        aws s3 sync build/ s3://$S3_BUCKET --delete --region $AWS_DEFAULT_REGION
+                    '''
+                }
             }
         }
     }
