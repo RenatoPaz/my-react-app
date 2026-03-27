@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = 'ca-central-1'
+        AWS_DEFAULT_REGION = 'us-east-1'
         S3_BUCKET = 'my-react-app-renato'
     }
 
@@ -16,17 +16,10 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "Checking environment..."
                     node --version
                     npm --version
-
-                    echo "Installing dependencies..."
                     npm install
-
-                    echo "Building React app..."
                     npm run build
-
-                    echo "Listing generated files..."
                     ls -la
                     ls -la build
                 '''
@@ -42,10 +35,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "Checking build output..."
                     test -f build/index.html
-
-                    echo "Running tests..."
                     CI=true npm test -- --watchAll=false
                 '''
             }
@@ -64,16 +54,19 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "Checking AWS CLI..."
                     aws --version
-
-                    echo "Deploying to S3 bucket..."
                     aws s3 sync build/ s3://$S3_BUCKET --delete
-
-                    echo "Deployment finished successfully."
                 '''
             }
         }
     }
 
+    post {
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
+        }
+    }
 }
