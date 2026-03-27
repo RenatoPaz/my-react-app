@@ -1,9 +1,11 @@
 pipeline {
     agent any
+
     environment {
         NETLIFY_SITE_ID = 'nfp_N69QcaxQKw4KmcnptHX1PMCzzZaFBGyM1f0a'
-        NETLIFY_AUTH_TOKEN = credentials('netlify-auth-token')
+        NETLIFY_AUTH_TOKEN = credentials('ReactApp')
     }
+
     stages {
         stage('Build') {
             agent {
@@ -23,6 +25,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Test') {
             agent {
                 docker {
@@ -36,6 +39,8 @@ pipeline {
                     npm test
                 '''
             }
+        }
+
         stage('Deploy') {
             agent {
                 docker {
@@ -53,6 +58,19 @@ pipeline {
                 '''
             }
         }
+        stage('AWS S3 Deploy') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli:2.0.30'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    aws --version
+                    aws s3 sync build/ s3://your-s3-bucket-name --delete
+                '''
+            }
+        }
     }
-}
 }
